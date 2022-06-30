@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 enum-map = "2.4.0"
+priority-queue = "1.2.2"
