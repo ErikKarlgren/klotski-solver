@@ -1,6 +1,8 @@
 use enum_map::{enum_map, Enum, EnumMap};
+use nohash_hasher::NoHashHasher;
 use std::{
-    fmt::{Debug, Display},
+    fmt::{format, Debug, Display},
+    hash::{Hash, Hasher},
     mem::size_of,
 };
 
@@ -82,7 +84,7 @@ impl Piece {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 struct State {
     pieces: [Piece; NUM_PIECES],
 }
@@ -107,10 +109,6 @@ impl State {
 
     fn target_piece(&self) -> &Piece {
         &self.pieces[0]
-    }
-
-    fn target_piece_as_mut(&mut self) -> &mut Piece {
-        &mut self.pieces[0]
     }
 
     fn is_solution(&self) -> bool {
@@ -184,6 +182,39 @@ impl Display for State {
     }
 }
 
+impl nohash_hasher::IsEnabled for State {}
+
+impl Hash for State {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        let mut aux_state = self.clone();
+        aux_state.pieces.sort_by(|a, b| {
+            let (ax, ay) = a.coor;
+            let (bx, by) = b.coor;
+
+            a.height
+                .cmp(&b.height)
+                .then(a.width.cmp(&b.width))
+                .then(ax.cmp(&bx))
+                .then(ay.cmp(&by))
+        });
+
+        let hash = aux_state
+            .pieces
+            .iter()
+            .flat_map(|p| {
+                let (x, y) = p.coor;
+                //[x & 0b111, y & 0b111]
+                [x, y]
+            })
+            .enumerate()
+            // We'll use 3 bits for each coordinate
+            // That means this will only work for boards upto 8x8 squares
+            .fold(0u64, |acc, (i, bits)| (bits << i * 3) as u64 | acc);
+
+        state.write_u64(hash);
+    }
+}
+
 #[derive(Debug, Enum, Copy, Clone)]
 enum Direction {
     Up,
@@ -225,6 +256,14 @@ fn apply_move_to_coords(coor: Coor, direction: Direction) -> Result<Coor, ()> {
 fn main() {
     println!("{}", State::new());
     println!("Size of State: {} bytes", size_of::<State>());
+
+    let mut hasher = nohash_hasher::NoHashHasher::<State>::default();
+    State::new().hash(&mut hasher);
+    let hash = hasher.finish();
+    // println!("Hash of State: {:b}", hasher.finish());
+    println!("Hash of State (60 bits): {hash:060b}");
+
+    return;
 
     for steps_limit in 1..=20000 {
         let state = State::new();
