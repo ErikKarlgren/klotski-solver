@@ -1,7 +1,7 @@
 use enum_map::{enum_map, Enum, EnumMap};
-use nohash_hasher::NoHashHasher;
+use pathfinding::directed::astar;
 use std::{
-    fmt::{format, Debug, Display},
+    fmt::{Debug, Display},
     hash::{Hash, Hasher},
     mem::size_of,
 };
@@ -13,7 +13,7 @@ const SOLUTION: (usize, usize) = (3, 1);
 
 type Coor = (usize, usize);
 
-#[derive(Debug, PartialEq, Copy, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]
 struct Piece {
     coor: Coor,
     height: usize,
@@ -84,7 +84,7 @@ impl Piece {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Eq)]
 struct State {
     pieces: [Piece; NUM_PIECES],
 }
@@ -116,7 +116,7 @@ impl State {
     }
 
     fn to_board(&self) -> [[usize; COLS]; ROWS] {
-        let mut board = [[0 as usize; COLS]; ROWS];
+        let mut board = [[0; COLS]; ROWS];
         for (n, piece) in self.pieces.iter().enumerate() {
             let Piece {
                 coor: (x, y),
@@ -167,6 +167,22 @@ impl State {
         }
         moves
     }
+
+    fn next_states(&self) -> Vec<(Self, i32)> {
+        let mut states = vec![];
+        for (piece, dir) in self.available_moves() {
+            let mut new_state = self.clone();
+            new_state
+                .pieces
+                .iter_mut()
+                .find(|p| p.coor == piece.coor)
+                .unwrap()
+                .move_(dir)
+                .expect("Invalid move");
+            states.push((new_state, 1));
+        }
+        states
+    }
 }
 
 impl Display for State {
@@ -209,9 +225,21 @@ impl Hash for State {
             .enumerate()
             // We'll use 3 bits for each coordinate
             // That means this will only work for boards upto 8x8 squares
-            .fold(0u64, |acc, (i, bits)| (bits << i * 3) as u64 | acc);
+            .fold(0u64, |acc, (i, bits)| (bits << (i * 3)) as u64 | acc);
 
         state.write_u64(hash);
+    }
+}
+
+impl PartialEq for State {
+    fn eq(&self, other: &Self) -> bool {
+        let mut self_hasher = nohash_hasher::NoHashHasher::<State>::default();
+        let mut other_hasher = nohash_hasher::NoHashHasher::<State>::default();
+
+        self.hash(&mut self_hasher);
+        other.hash(&mut other_hasher);
+
+        self_hasher.finish() == other_hasher.finish()
     }
 }
 
@@ -223,16 +251,16 @@ enum Direction {
     Down,
 }
 
-impl Direction {
-    fn opposite(&self) -> Direction {
-        match self {
-            Direction::Up => Direction::Down,
-            Direction::Right => Direction::Left,
-            Direction::Left => Direction::Right,
-            Direction::Down => Direction::Up,
-        }
-    }
-}
+// impl Direction {
+//     fn opposite(&self) -> Direction {
+//         match self {
+//             Direction::Up => Direction::Down,
+//             Direction::Right => Direction::Left,
+//             Direction::Left => Direction::Right,
+//             Direction::Down => Direction::Up,
+//         }
+//     }
+// }
 
 fn apply_move_to_coords(coor: Coor, direction: Direction) -> Result<Coor, ()> {
     let (x, y) = coor;
@@ -254,55 +282,30 @@ fn apply_move_to_coords(coor: Coor, direction: Direction) -> Result<Coor, ()> {
 }
 
 fn main() {
-    println!("{}", State::new());
+    let state = State::new();
+    println!("{}", state);
     println!("Size of State: {} bytes", size_of::<State>());
 
     let mut hasher = nohash_hasher::NoHashHasher::<State>::default();
-    State::new().hash(&mut hasher);
+    state.hash(&mut hasher);
     let hash = hasher.finish();
     // println!("Hash of State: {:b}", hasher.finish());
     println!("Hash of State (60 bits): {hash:060b}");
 
-    return;
-
-    for steps_limit in 1..=20000 {
-        let state = State::new();
-
-        if let Ok((final_state, num_steps)) = solve_problem(state, steps_limit) {
-            println!("Arrived to solution in {num_steps} steps!");
-            println!("{final_state}");
-            break;
-        } else {
-            println!("I couldn't find a solution in {steps_limit} steps :(");
-        }
+    if let Some((path, steps)) = astar::astar(
+        &state,
+        |p| p.next_states(),
+        |s| {
+            let (tx, ty) = s.target_piece().coor;
+            let (sx, sy) = SOLUTION;
+            (tx as i32 - sx as i32).abs() + (ty as i32 - sy as i32).abs()
+        },
+        |s| s.is_solution(),
+    ) {
+        println!("Solution found!");
+        println!("Steps: {steps}");
+        println!("Solution:\n{}", path.last().unwrap());
+    } else {
+        println!("No solution?");
     }
-}
-
-fn solve_problem(state: State, steps_limit: u32) -> Result<(State, u32), ()> {
-    solve_problem_rec(state, steps_limit, 0)
-}
-
-fn solve_problem_rec(state: State, steps_limit: u32, taken_steps: u32) -> Result<(State, u32), ()> {
-    if state.is_solution() {
-        return Ok((state, taken_steps));
-    }
-    if taken_steps == steps_limit {
-        return Err(());
-    }
-
-    let available_moves = state.available_moves();
-
-    for (piece, direction) in available_moves {
-        for mut board_piece in state.pieces {
-            if piece.coor == board_piece.coor {
-                board_piece.move_(direction)?;
-                if let Ok(sol) = solve_problem_rec(state.clone(), steps_limit, taken_steps + 1) {
-                    return Ok(sol);
-                }
-                board_piece.move_(direction.opposite())?;
-                break;
-            }
-        }
-    }
-    Err(())
 }
