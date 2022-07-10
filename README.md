@@ -1,14 +1,13 @@
 # Klotski Solver
 
-<p>
-    <img src="https://img.shields.io/badge/license-MIT-orange">
-</p>
+![License | MIT](https://img.shields.io/badge/License-MIT-orange)
 
 ## Description
 
 Simple program made in Rust to solve Klotski.
 
 [Klotski](https://en.wikipedia.org/wiki/Klotski) is a sliding puzzle game quite popular even though few know its name. In this game, the player has several blocks and has to move the biggest of them to the bottom center of the board. It has other names such as:
+
 - _Huarong Dao_ or _華容道_ in Chinese
 - _Daughter in the box_, _hakoiri musume_ or _箱入り娘_ in Japanese
 - _L'âne rouge_ in French
