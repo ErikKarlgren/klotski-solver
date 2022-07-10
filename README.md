@@ -1,5 +1,9 @@
 # Klotski Solver
 
+<p>
+    <img src="https://img.shields.io/badge/license-MIT-orange">
+</p>
+
 ## Description
 
 Simple program made in Rust to solve Klotski.
