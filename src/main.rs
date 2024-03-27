@@ -1,28 +1,17 @@
+mod coordinates;
+
+use coordinates::Coor;
 use enum_map::{enum_map, Enum, EnumMap};
 use pathfinding::directed::astar;
 use std::{
     fmt::{Debug, Display},
     hash::{Hash, Hasher},
-    ops::Add,
 };
 
 const ROWS: usize = 5;
 const COLS: usize = 4;
 const NUM_PIECES: usize = 10;
-const SOLUTION: Coor = Coor(3, 1);
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-struct Coor(usize, usize);
-
-impl Add for Coor {
-    type Output = Coor;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        let Coor(x, y) = self;
-        let Coor(ox, oy) = rhs;
-        Coor(x + ox, y + oy)
-    }
-}
+const SOLUTION: Coor = Coor::new(3, 1);
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]
 struct Piece {
@@ -38,28 +27,28 @@ impl Piece {
             Direction::Right | Direction::Left => Vec::with_capacity(self.height),
         };
         let upper_left = self.coor;
-        let bottom_left = self.coor + Coor(self.height - 1, 0);
-        let upper_right = self.coor + Coor(0, self.width - 1);
+        let bottom_left = self.coor + Coor::new(self.height - 1, 0);
+        let upper_right = self.coor + Coor::new(0, self.width - 1);
 
         for col in 0..self.width {
-            let upper_row_coor = upper_left + Coor(0, col);
+            let upper_row_coor = upper_left + Coor::new(0, col);
             if let Ok(coor) = apply_move_to_coords(upper_row_coor, Direction::Up) {
                 spaces[Direction::Up].push(coor);
             }
 
-            let bottom_row_coor = bottom_left + Coor(0, col);
+            let bottom_row_coor = bottom_left + Coor::new(0, col);
             if let Ok(coor) = apply_move_to_coords(bottom_row_coor, Direction::Down) {
                 spaces[Direction::Down].push(coor);
             }
         }
 
         for row in 0..self.height {
-            let left_col_coor = upper_left + Coor(row, 0);
+            let left_col_coor = upper_left + Coor::new(row, 0);
             if let Ok(coor) = apply_move_to_coords(left_col_coor, Direction::Left) {
                 spaces[Direction::Left].push(coor);
             }
 
-            let right_col_coor = upper_right + Coor(row, 0);
+            let right_col_coor = upper_right + Coor::new(row, 0);
             if let Ok(coor) = apply_move_to_coords(right_col_coor, Direction::Right) {
                 spaces[Direction::Right].push(coor);
             }
@@ -72,7 +61,7 @@ impl Piece {
 
         for row in 0..self.height {
             for col in 0..self.width {
-                spaces.push(self.coor + Coor(row, col));
+                spaces.push(self.coor + Coor::new(row, col));
             }
         }
         spaces
@@ -101,8 +90,8 @@ impl PartialOrd for Piece {
 
 impl Ord for Piece {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let Coor(ax, ay) = self.coor;
-        let Coor(bx, by) = other.coor;
+        let Coor { x: ax, y: ay } = self.coor;
+        let Coor { x: bx, y: by } = other.coor;
 
         self.height
             .cmp(&other.height)
@@ -121,16 +110,16 @@ impl State {
     fn new() -> State {
         State {
             pieces: [
-                Piece::new(Coor(0, 1), 2, 2),
-                Piece::new(Coor(0, 0), 2, 1),
-                Piece::new(Coor(0, 3), 2, 1),
-                Piece::new(Coor(2, 1), 1, 2),
-                Piece::new(Coor(3, 0), 2, 1),
-                Piece::new(Coor(3, 3), 2, 1),
-                Piece::new(Coor(3, 1), 1, 1),
-                Piece::new(Coor(3, 2), 1, 1),
-                Piece::new(Coor(4, 1), 1, 1),
-                Piece::new(Coor(4, 2), 1, 1),
+                Piece::new(Coor::new(0, 1), 2, 2),
+                Piece::new(Coor::new(0, 0), 2, 1),
+                Piece::new(Coor::new(0, 3), 2, 1),
+                Piece::new(Coor::new(2, 1), 1, 2),
+                Piece::new(Coor::new(3, 0), 2, 1),
+                Piece::new(Coor::new(3, 3), 2, 1),
+                Piece::new(Coor::new(3, 1), 1, 1),
+                Piece::new(Coor::new(3, 2), 1, 1),
+                Piece::new(Coor::new(4, 1), 1, 1),
+                Piece::new(Coor::new(4, 2), 1, 1),
             ],
         }
     }
@@ -147,7 +136,7 @@ impl State {
         let mut board = [[0; COLS]; ROWS];
         for (n, piece) in self.pieces.iter().enumerate() {
             let Piece {
-                coor: Coor(x, y),
+                coor: Coor { x, y },
                 height,
                 width,
             } = piece;
@@ -237,7 +226,7 @@ impl Hash for State {
             .pieces
             .iter()
             .flat_map(|p| {
-                let Coor(x, y) = p.coor;
+                let Coor { x, y } = p.coor;
                 //[x & 0b111, y & 0b111]
                 [x, y]
             })
@@ -271,7 +260,7 @@ enum Direction {
 }
 
 fn apply_move_to_coords(coor: Coor, direction: Direction) -> Result<Coor, ()> {
-    let Coor(x, y) = coor;
+    let Coor { x, y } = coor;
     let (x, y) = (x as i32, y as i32);
     let new_coor = match direction {
         Direction::Up => (x - 1, y),
@@ -283,7 +272,7 @@ fn apply_move_to_coords(coor: Coor, direction: Direction) -> Result<Coor, ()> {
     let (new_x, new_y) = new_coor;
 
     if (0..ROWS as i32).contains(&new_x) && (0..COLS as i32).contains(&new_y) {
-        Ok(Coor(new_coor.0 as usize, new_coor.1 as usize))
+        Ok(Coor::new(new_coor.0 as usize, new_coor.1 as usize))
     } else {
         Err(())
     }
@@ -305,9 +294,10 @@ fn solve_klotski(state: State) -> Option<(Vec<State>, i32)> {
     astar::astar(
         &state,
         |p| p.next_states(),
-        |s| { // Manhattan distance
-            let Coor(tx, ty) = s.target_piece().coor;
-            let Coor(sx, sy) = SOLUTION;
+        |s| {
+            // Manhattan distance
+            let Coor { x: tx, y: ty } = s.target_piece().coor;
+            let Coor { x: sx, y: sy } = SOLUTION;
             (tx as i32 - sx as i32).abs() + (ty as i32 - sy as i32).abs()
         },
         |s| s.is_solution(),
