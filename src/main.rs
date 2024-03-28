@@ -19,6 +19,7 @@ fn main() {
     }
 }
 
+/// Solves a given Klotski board state using an A* algorithm
 fn solve_klotski(state: Board) -> Option<(Vec<Board>, i32)> {
     astar::astar(
         &state,

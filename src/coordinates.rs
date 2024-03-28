@@ -18,6 +18,21 @@ impl Coor {
         Self { x, y }
     }
 
+    /// Apply a move of distance `1` to `self` in the given direction.
+    ///
+    /// This is how the coordinate system looks like:
+    ///
+    /// ```
+    ///      y=0  y=1  y=2  y=3  y=4  ...
+    /// x=0
+    /// x=1      
+    /// x=2           (x,y)
+    /// x=3
+    /// x=4
+    /// ...
+    /// ```
+    ///
+    /// TODO: Fix this so `x` refers to the horizontal axis, and `y` to the vetical one
     pub fn apply_move(self, direction: Direction) -> Result<Coor, ()> {
         let Coor { x, y } = self;
         let (x, y) = (x as i32, y as i32);
@@ -48,5 +63,26 @@ impl Add for Coor {
             x: x + ox,
             y: y + oy,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        coordinates::{COLS, ROWS},
+        direction::Direction,
+    };
+
+    use super::Coor;
+
+    #[test]
+    fn check_boundaries() {
+        let a = Coor::new(0, 0);
+        assert_eq!(a.apply_move(Direction::Up), Err(()));
+        assert_eq!(a.apply_move(Direction::Left), Err(()));
+
+        let b = Coor::new(ROWS - 1, COLS - 1);
+        assert_eq!(b.apply_move(Direction::Down), Err(()));
+        assert_eq!(b.apply_move(Direction::Right), Err(()));
     }
 }

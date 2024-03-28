@@ -8,9 +8,12 @@ use std::{
     hash::{Hash, Hasher},
 };
 
+/// Coordinate where the final piece must be in the final state
 pub const SOLUTION: Coor = Coor::new(3, 1);
+/// Number of total pieces in the board
 pub const NUM_PIECES: usize = 10;
 
+/// Represents a Klotski board's state and its pieces
 #[derive(Debug, Clone, Eq)]
 pub struct Board {
     pub pieces: [Piece; NUM_PIECES],
@@ -34,14 +37,17 @@ impl Board {
         }
     }
 
+    /// Reference to the target piece (i.e. the one that needs to get to the target place)
     pub fn target_piece(&self) -> &Piece {
         &self.pieces[0]
     }
 
+    /// Return whether the actual state is that of the solution
     pub fn is_solution(&self) -> bool {
         self.target_piece().coor == SOLUTION
     }
 
+    /// Transform `self` to a matrix, usually meant for drawing purposes
     fn to_board(&self) -> [[usize; COLS]; ROWS] {
         let mut board = [[0; COLS]; ROWS];
         for (n, piece) in self.pieces.iter().enumerate() {
@@ -63,6 +69,8 @@ impl Board {
         board
     }
 
+    /// Return a `Vec` containing all the possible moves in the current state. These moves
+    /// are represented by a pair `Piece, Direction)`.
     fn available_moves(&self) -> Vec<(Piece, Direction)> {
         let mut moves: Vec<(Piece, Direction)> = vec![];
         let occupied_spaces_cache: &Vec<Vec<Coor>> =
@@ -95,6 +103,10 @@ impl Board {
         moves
     }
 
+    /// Return a `Vec` with all the possible board states, as long as the cost
+    /// to get to each one (will always be `1`).
+    ///
+    /// This cost is added for use in the A* search for solving a Klotski board.
     pub fn next_states(&self) -> Vec<(Self, i32)> {
         let mut states = vec![];
         for (piece, dir) in self.available_moves() {
