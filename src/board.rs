@@ -52,17 +52,17 @@ impl Board {
         let mut board = [[0; COLS]; ROWS];
         for (n, piece) in self.pieces.iter().enumerate() {
             let Piece {
-                coor: Coor { x, y },
+                coor: Coor { row, col },
                 height,
                 width,
             } = piece;
 
             for i in 0..*height {
                 for j in 0..*width {
-                    if board[x + i][y + j] != 0 {
+                    if board[row + i][col + j] != 0 {
                         panic!("Cannot override value");
                     }
-                    board[x + i][y + j] = n + 1;
+                    board[row + i][col + j] = n + 1;
                 }
             }
         }
@@ -148,9 +148,9 @@ impl Hash for Board {
             .pieces
             .iter()
             .flat_map(|p| {
-                let Coor { x, y } = p.coor;
-                //[x & 0b111, y & 0b111]
-                [x, y]
+                let Coor { row, col } = p.coor;
+                //[row & 0b111, col & 0b111]
+                [row, col]
             })
             .enumerate()
             // We'll use 3 bits for each coordinate

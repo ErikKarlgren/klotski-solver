@@ -11,8 +11,8 @@ These tasks are related to creating new functionality for the end-user.
 ## Internal
 These tasks affect internal code refactors and other things that shouldn't affect the user's experience.
 
-- [ ] Start using the X coordinates for the horizontal axis, and the Y coordinates for the vertical one (it's now the opposite)
 - [ ] Add ratatui as a dependency
 - [ ] Add versioning?
 - [x] Add better error handling, delete all unwraps
+- [x] Rename `x` and `y` to `row` and `col`
 

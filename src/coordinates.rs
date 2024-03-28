@@ -5,17 +5,17 @@ use crate::{direction::Direction, errors::IllegalCoordinateError};
 pub const ROWS: usize = 5;
 pub const COLS: usize = 4;
 
-/// `Coor` represents a coordinate of the form (x, y), where `x>=0 && y>=0'
+/// `Coor` represents a coordinate of the form (row, col), where `row>=0 && col>=0'
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Coor {
-    pub x: usize,
-    pub y: usize,
+    pub row: usize,
+    pub col: usize,
 }
 
 impl Coor {
     /// Create a new `Coor`.
-    pub const fn new(x: usize, y: usize) -> Self {
-        Self { x, y }
+    pub const fn new(row: usize, col: usize) -> Self {
+        Self { row, col }
     }
 
     /// Apply a move of distance `1` to `self` in the given direction.
@@ -32,20 +32,19 @@ impl Coor {
     /// ...
     /// ```
     ///
-    /// TODO: Fix this so `x` refers to the horizontal axis, and `y` to the vetical one
     pub fn apply_move(self, direction: Direction) -> Result<Coor, IllegalCoordinateError> {
-        let Coor { x, y } = self;
-        let (x, y) = (x as i32, y as i32);
+        let Coor { row, col } = self;
+        let (row, col) = (row as i32, col as i32);
         let new_coor = match direction {
-            Direction::Up => (x - 1, y),
-            Direction::Right => (x, y + 1),
-            Direction::Left => (x, y - 1),
-            Direction::Down => (x + 1, y),
+            Direction::Up => (row - 1, col),
+            Direction::Right => (row, col + 1),
+            Direction::Left => (row, col - 1),
+            Direction::Down => (row + 1, col),
         };
 
-        let (new_x, new_y) = new_coor;
+        let (new_row, new_col) = new_coor;
 
-        if (0..ROWS as i32).contains(&new_x) && (0..COLS as i32).contains(&new_y) {
+        if (0..ROWS as i32).contains(&new_row) && (0..COLS as i32).contains(&new_col) {
             Ok(Coor::new(new_coor.0 as usize, new_coor.1 as usize))
         } else {
             Err(IllegalCoordinateError)
@@ -57,11 +56,14 @@ impl Add for Coor {
     type Output = Coor;
 
     fn add(self, rhs: Self) -> Self::Output {
-        let Coor { x, y } = self;
-        let Coor { x: ox, y: oy } = rhs;
+        let Coor { row, col } = self;
+        let Coor {
+            row: other_row,
+            col: other_col,
+        } = rhs;
         Coor {
-            x: x + ox,
-            y: y + oy,
+            row: row + other_row,
+            col: col + other_col,
         }
     }
 }

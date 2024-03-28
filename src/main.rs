@@ -30,9 +30,17 @@ fn solve_klotski(state: Board) -> Option<(Vec<Board>, i32)> {
         |p| p.next_states(),
         |s| {
             // Manhattan distance
-            let Coor { x: tx, y: ty } = s.target_piece().coor;
-            let Coor { x: sx, y: sy } = SOLUTION;
-            (tx as i32 - sx as i32).abs() + (ty as i32 - sy as i32).abs()
+            let Coor {
+                row: target_row,
+                col: target_col,
+            } = s.target_piece().coor;
+
+            let Coor {
+                row: sol_row,
+                col: sol_col,
+            } = SOLUTION;
+
+            (target_row as i32 - sol_row as i32).abs() + (target_col as i32 - sol_col as i32).abs()
         },
         |s| s.is_solution(),
     )

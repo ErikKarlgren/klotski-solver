@@ -95,14 +95,17 @@ impl PartialOrd for Piece {
 
 impl Ord for Piece {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let Coor { x: ax, y: ay } = self.coor;
-        let Coor { x: bx, y: by } = other.coor;
+        let Coor { row, col } = self.coor;
+        let Coor {
+            row: other_row,
+            col: other_col,
+        } = other.coor;
 
         self.height
             .cmp(&other.height)
             .then(self.width.cmp(&other.width))
-            .then(ax.cmp(&bx))
-            .then(ay.cmp(&by))
+            .then(row.cmp(&other_row))
+            .then(col.cmp(&other_col))
     }
 }
 
