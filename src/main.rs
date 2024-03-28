@@ -33,3 +33,16 @@ fn solve_klotski(state: Board) -> Option<(Vec<Board>, i32)> {
         |s| s.is_solution(),
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{board::Board, solve_klotski};
+
+    #[test]
+    fn can_solve_default_klotski() {
+        // This test may take a few seconds to complete
+        let board = Board::new();
+        let finished = solve_klotski(board);
+        assert!(finished.is_some());
+    }
+}
