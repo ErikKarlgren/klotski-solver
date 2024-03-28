@@ -14,7 +14,10 @@ fn main() {
     if let Some((path, steps)) = solve_klotski(state) {
         println!("Solution found!");
         println!("Steps: {steps}");
-        println!("Solution:\n{}", path.last().unwrap());
+        println!(
+            "Solution:\n{}",
+            path.last().expect("path to solution has at least 1 state")
+        );
     } else {
         println!("No solution?");
     }

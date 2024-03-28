@@ -115,7 +115,7 @@ impl Board {
                 .pieces
                 .iter_mut()
                 .find(|p| p.coor == piece.coor)
-                .unwrap()
+                .expect("we use a piece's coordinate to find itself in the board")
                 .make_move(dir)
                 .expect("Invalid move");
             states.push((new_state, 1));
