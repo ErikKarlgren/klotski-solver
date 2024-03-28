@@ -1,6 +1,7 @@
 mod board;
 mod coordinates;
 mod direction;
+mod errors;
 mod piece;
 
 use board::{Board, SOLUTION};

@@ -1,6 +1,6 @@
 use std::ops::Add;
 
-use crate::direction::Direction;
+use crate::{direction::Direction, errors::IllegalCoordinateError};
 
 pub const ROWS: usize = 5;
 pub const COLS: usize = 4;
@@ -33,7 +33,7 @@ impl Coor {
     /// ```
     ///
     /// TODO: Fix this so `x` refers to the horizontal axis, and `y` to the vetical one
-    pub fn apply_move(self, direction: Direction) -> Result<Coor, ()> {
+    pub fn apply_move(self, direction: Direction) -> Result<Coor, IllegalCoordinateError> {
         let Coor { x, y } = self;
         let (x, y) = (x as i32, y as i32);
         let new_coor = match direction {
@@ -48,7 +48,7 @@ impl Coor {
         if (0..ROWS as i32).contains(&new_x) && (0..COLS as i32).contains(&new_y) {
             Ok(Coor::new(new_coor.0 as usize, new_coor.1 as usize))
         } else {
-            Err(())
+            Err(IllegalCoordinateError)
         }
     }
 }
@@ -78,11 +78,11 @@ mod tests {
     #[test]
     fn check_boundaries() {
         let a = Coor::new(0, 0);
-        assert_eq!(a.apply_move(Direction::Up), Err(()));
-        assert_eq!(a.apply_move(Direction::Left), Err(()));
+        assert!(a.apply_move(Direction::Up).is_err());
+        assert!(a.apply_move(Direction::Left).is_err());
 
         let b = Coor::new(ROWS - 1, COLS - 1);
-        assert_eq!(b.apply_move(Direction::Down), Err(()));
-        assert_eq!(b.apply_move(Direction::Right), Err(()));
+        assert!(b.apply_move(Direction::Down).is_err());
+        assert!(b.apply_move(Direction::Right).is_err());
     }
 }

@@ -1,4 +1,4 @@
-use crate::{coordinates::Coor, direction::Direction};
+use crate::{coordinates::Coor, direction::Direction, errors::IllegalCoordinateError};
 use enum_map::{enum_map, EnumMap};
 
 /// Representation of a movable piece in Klotski.
@@ -68,7 +68,7 @@ impl Piece {
     }
 
     /// Moves `self` in the given `Direction`. Return `Err` if the move is out of bounds.
-    pub fn make_move(&mut self, direction: Direction) -> Result<(), ()> {
+    pub fn make_move(&mut self, direction: Direction) -> Result<(), IllegalCoordinateError> {
         let new_coor = self.coor.apply_move(direction)?;
         self.coor = new_coor;
         Ok(())
@@ -134,6 +134,6 @@ mod tests {
     #[test]
     fn check_boundaries_make_move() {
         let mut piece = default_piece();
-        assert_eq!(piece.make_move(Direction::Up), Err(()));
+        assert!(piece.make_move(Direction::Up).is_err());
     }
 }
