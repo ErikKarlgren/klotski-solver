@@ -1,105 +1,18 @@
 mod coordinates;
+mod direction;
+mod piece;
 
-use coordinates::Coor;
-use enum_map::{enum_map, Enum, EnumMap};
+use coordinates::{Coor, COLS, ROWS};
+use direction::Direction;
 use pathfinding::directed::astar;
+use piece::Piece;
 use std::{
     fmt::{Debug, Display},
     hash::{Hash, Hasher},
 };
 
-const ROWS: usize = 5;
-const COLS: usize = 4;
 const NUM_PIECES: usize = 10;
 const SOLUTION: Coor = Coor::new(3, 1);
-
-#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]
-struct Piece {
-    coor: Coor,
-    height: usize,
-    width: usize,
-}
-
-impl Piece {
-    fn adjacent_spaces(&self) -> EnumMap<Direction, Vec<Coor>> {
-        let mut spaces: EnumMap<Direction, Vec<Coor>> = enum_map! {
-            Direction::Up | Direction::Down => Vec::with_capacity(self.width),
-            Direction::Right | Direction::Left => Vec::with_capacity(self.height),
-        };
-        let upper_left = self.coor;
-        let bottom_left = self.coor + Coor::new(self.height - 1, 0);
-        let upper_right = self.coor + Coor::new(0, self.width - 1);
-
-        for col in 0..self.width {
-            let upper_row_coor = upper_left + Coor::new(0, col);
-            if let Ok(coor) = apply_move_to_coords(upper_row_coor, Direction::Up) {
-                spaces[Direction::Up].push(coor);
-            }
-
-            let bottom_row_coor = bottom_left + Coor::new(0, col);
-            if let Ok(coor) = apply_move_to_coords(bottom_row_coor, Direction::Down) {
-                spaces[Direction::Down].push(coor);
-            }
-        }
-
-        for row in 0..self.height {
-            let left_col_coor = upper_left + Coor::new(row, 0);
-            if let Ok(coor) = apply_move_to_coords(left_col_coor, Direction::Left) {
-                spaces[Direction::Left].push(coor);
-            }
-
-            let right_col_coor = upper_right + Coor::new(row, 0);
-            if let Ok(coor) = apply_move_to_coords(right_col_coor, Direction::Right) {
-                spaces[Direction::Right].push(coor);
-            }
-        }
-        spaces
-    }
-
-    fn occupied_spaces(&self) -> Vec<Coor> {
-        let mut spaces = Vec::with_capacity(self.height * self.width);
-
-        for row in 0..self.height {
-            for col in 0..self.width {
-                spaces.push(self.coor + Coor::new(row, col));
-            }
-        }
-        spaces
-    }
-
-    fn make_move(&mut self, direction: Direction) -> Result<(), ()> {
-        let new_coor = apply_move_to_coords(self.coor, direction)?;
-        self.coor = new_coor;
-        Ok(())
-    }
-
-    fn new(coor: Coor, height: usize, width: usize) -> Piece {
-        Piece {
-            coor,
-            height,
-            width,
-        }
-    }
-}
-
-impl PartialOrd for Piece {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-impl Ord for Piece {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        let Coor { x: ax, y: ay } = self.coor;
-        let Coor { x: bx, y: by } = other.coor;
-
-        self.height
-            .cmp(&other.height)
-            .then(self.width.cmp(&other.width))
-            .then(ax.cmp(&bx))
-            .then(ay.cmp(&by))
-    }
-}
 
 #[derive(Debug, Clone, Eq)]
 struct State {
@@ -248,33 +161,6 @@ impl PartialEq for State {
         other.hash(&mut other_hasher);
 
         self_hasher.finish() == other_hasher.finish()
-    }
-}
-
-#[derive(Debug, Enum, Copy, Clone)]
-enum Direction {
-    Up,
-    Right,
-    Left,
-    Down,
-}
-
-fn apply_move_to_coords(coor: Coor, direction: Direction) -> Result<Coor, ()> {
-    let Coor { x, y } = coor;
-    let (x, y) = (x as i32, y as i32);
-    let new_coor = match direction {
-        Direction::Up => (x - 1, y),
-        Direction::Right => (x, y + 1),
-        Direction::Left => (x, y - 1),
-        Direction::Down => (x + 1, y),
-    };
-
-    let (new_x, new_y) = new_coor;
-
-    if (0..ROWS as i32).contains(&new_x) && (0..COLS as i32).contains(&new_y) {
-        Ok(Coor::new(new_coor.0 as usize, new_coor.1 as usize))
-    } else {
-        Err(())
     }
 }
 
