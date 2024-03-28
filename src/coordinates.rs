@@ -70,12 +70,28 @@ impl Add for Coor {
 
 #[cfg(test)]
 mod tests {
+    use super::Coor;
     use crate::{
         coordinates::{COLS, ROWS},
         direction::Direction,
     };
 
-    use super::Coor;
+    #[test]
+    fn check_legal_movements() {
+        let c = Coor::new(1, 1);
+        assert!(c
+            .apply_move(Direction::Up)
+            .is_ok_and(|d| d == Coor::new(0, 1)));
+        assert!(c
+            .apply_move(Direction::Left)
+            .is_ok_and(|d| d == Coor::new(1, 0)));
+        assert!(c
+            .apply_move(Direction::Right)
+            .is_ok_and(|d| d == Coor::new(1, 2)));
+        assert!(c
+            .apply_move(Direction::Down)
+            .is_ok_and(|d| d == Coor::new(2, 1)));
+    }
 
     #[test]
     fn check_boundaries() {

@@ -126,9 +126,9 @@ mod tests {
         assert_eq!(
             spaces,
             enum_map! {
-                Direction::Up=>vec![],
+                Direction::Up => vec![],
                 Direction::Down => vec![Coor::new(1,0)],
-                Direction::Right=>vec![Coor::new(0,1)],
+                Direction::Right => vec![Coor::new(0,1)],
                 Direction::Left => vec![],
             }
         );
@@ -138,5 +138,6 @@ mod tests {
     fn check_boundaries_make_move() {
         let mut piece = default_piece();
         assert!(piece.make_move(Direction::Up).is_err());
+        assert!(piece.make_move(Direction::Left).is_err());
     }
 }
