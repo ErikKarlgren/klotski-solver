@@ -18,8 +18,8 @@ impl Coor {
         Self { x, y }
     }
 
-    pub fn apply_move_to_coords(coor: Coor, direction: Direction) -> Result<Coor, ()> {
-        let Coor { x, y } = coor;
+    pub fn apply_move(self, direction: Direction) -> Result<Coor, ()> {
+        let Coor { x, y } = self;
         let (x, y) = (x as i32, y as i32);
         let new_coor = match direction {
             Direction::Up => (x - 1, y),

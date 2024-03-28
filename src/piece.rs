@@ -20,24 +20,24 @@ impl Piece {
 
         for col in 0..self.width {
             let upper_row_coor = upper_left + Coor::new(0, col);
-            if let Ok(coor) = Coor::apply_move_to_coords(upper_row_coor, Direction::Up) {
+            if let Ok(coor) = upper_row_coor.apply_move(Direction::Up) {
                 spaces[Direction::Up].push(coor);
             }
 
             let bottom_row_coor = bottom_left + Coor::new(0, col);
-            if let Ok(coor) = Coor::apply_move_to_coords(bottom_row_coor, Direction::Down) {
+            if let Ok(coor) = bottom_row_coor.apply_move(Direction::Down) {
                 spaces[Direction::Down].push(coor);
             }
         }
 
         for row in 0..self.height {
             let left_col_coor = upper_left + Coor::new(row, 0);
-            if let Ok(coor) = Coor::apply_move_to_coords(left_col_coor, Direction::Left) {
+            if let Ok(coor) = left_col_coor.apply_move(Direction::Left) {
                 spaces[Direction::Left].push(coor);
             }
 
             let right_col_coor = upper_right + Coor::new(row, 0);
-            if let Ok(coor) = Coor::apply_move_to_coords(right_col_coor, Direction::Right) {
+            if let Ok(coor) = right_col_coor.apply_move(Direction::Right) {
                 spaces[Direction::Right].push(coor);
             }
         }
@@ -56,7 +56,7 @@ impl Piece {
     }
 
     pub fn make_move(&mut self, direction: Direction) -> Result<(), ()> {
-        let new_coor = Coor::apply_move_to_coords(self.coor, direction)?;
+        let new_coor = self.coor.apply_move(direction)?;
         self.coor = new_coor;
         Ok(())
     }
