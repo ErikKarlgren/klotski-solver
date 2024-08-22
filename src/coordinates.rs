@@ -22,7 +22,7 @@ impl Coor {
     ///
     /// This is how the coordinate system looks like:
     ///
-    /// ```
+    /// ```test
     ///      y=0  y=1  y=2  y=3  y=4  ...
     /// x=0
     /// x=1      
